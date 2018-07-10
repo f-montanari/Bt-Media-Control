@@ -1,32 +1,14 @@
 package com.fmontanari.wearable;
 
-import android.app.ProgressDialog;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
-import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
-
-import com.btwiz.library.BTSocket;
-import com.btwiz.library.BTWiz;
-import com.btwiz.library.DeviceMajorComparator;
-import com.btwiz.library.DeviceNotSupportBluetooth;
-import com.btwiz.library.GetAllDevicesListener;
-import com.btwiz.library.IDeviceConnectionListener;
-import com.btwiz.library.IDeviceLookupListener;
-import com.btwiz.library.MarkCompletionListener;
-import com.btwiz.library.SecureMode;
-import com.btwiz.library.Utils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Set;
 import java.util.UUID;
 
 public class BluetoothComms {
@@ -40,124 +22,10 @@ public class BluetoothComms {
     private ConnectThread mConnectThread;
     private BluetoothDevice mmDevice;
     private UUID deviceUUID;
-    ProgressDialog mProgressDialog;
 
     public ConnectedThread mConnectedThread;
 
 
-
-
-
-    public static BluetoothComms getInstance()
-    {
-        if(instance == null)
-        {
-            instance = new BluetoothComms();
-        }
-        return instance;
-    }
-
-    /**
-     * Test looking up and connecting to a single device, identified by major number & name, via getBTDeviceAsync.
-     * Note that if device is not part of the bonded list a discovery process will be initiated.
-     *  Set name to null to disable comparison by name
-     *  Set major to -1 to disable comparison by major
-     */
-    public static void connectToDevice(final Context context, final int major,
-                                       final String name, final SecureMode secureMode, final UUID serviceUuid) {
-        try {
-            if (!BTWiz.isEnabled(context)) {
-                // TODO call startActivity with BTWiz.enableBTIntent() allowing user to enable BT
-                context.startActivity(BTWiz.enableBTIntent());
-                return;
-            }
-        } catch (DeviceNotSupportBluetooth e) {
-            // TODO disable BT functionality in your app
-            return;
-        }
-
-        final IDeviceConnectionListener deviceConnectionListener = new IDeviceConnectionListener() {
-            @Override
-            public void onConnectionError(Exception exception, String where) {
-                // TODO handle connection error
-                Log.e("Tester", "Connection error: " + exception + " at " + where);
-            }
-            @Override
-            public void onConnectSuccess(BTSocket clientSocket) {
-                // TODO work with new connection e.g. using
-                // async IO methods: readAsync() & writeAsync()
-                // or synchronous read() & write()
-                Log.d("Tester", "Connected to new device");
-            }
-        };
-
-
-        // declare a connecting listener
-        IDeviceLookupListener lookupListener = new IDeviceLookupListener() {
-            @Override
-            public boolean onDeviceFound(BluetoothDevice device, boolean byDiscovery) {
-                // log
-                String name = device.getName();
-                String addr = device.getAddress();
-                int major = device.getBluetoothClass().getMajorDeviceClass();
-                String majorStr = Utils.majorToString(major);
-                Log.d("Tester", "Discovered device: " + name + ", " + addr + ", " + majorStr);
-                // and connect to the newly found device
-                BTWiz.connectAsClientAsync(context, device, deviceConnectionListener, secureMode, serviceUuid);
-                return false; // and terminate discovery
-            }
-            @Override
-            public void onDeviceNotFound(boolean byDiscovery) {
-                // TODO handle discovery failure
-                Log.d("Tester", "Failed to discover device");
-            }
-        };
-
-        final boolean DISCOVER_IF_NEEDED = true; // start discovery if device not found in bonded-devices list
-        DeviceMajorComparator comparator = new DeviceMajorComparator(major, name);
-
-        BTWiz.lookupDeviceAsync(context, comparator, lookupListener, DISCOVER_IF_NEEDED);
-
-        // TODO call BTWiz.cleanup() at end of BT processing
-    }
-
-
-
-
-    public void connectToBTDevice(BluetoothDevice device) {
-        String name = device.getName();
-        String addr = device.getAddress();
-        int major = device.getBluetoothClass().getMajorDeviceClass();
-        String majorStr = Utils.majorToString(major);
-        Log.d(TAG, "Discovered device: " + name + ", " + addr + ", " + majorStr);
-
-        UUID SERIAL_UUID = device.getUuids()[0].getUuid();
-
-        BluetoothSocket socket = null;
-
-        try {
-            socket = device.createRfcommSocketToServiceRecord(SERIAL_UUID);
-        } catch (Exception e) {
-            Log.e(TAG, "Error creating socket");
-        }
-
-        try {
-            socket.connect();
-            Log.e(TAG, "Connected");
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-            try {
-                Log.e(TAG, "trying fallback...");
-
-                socket = (BluetoothSocket) device.getClass().getMethod("createRfcommSocket", new Class[]{int.class}).invoke(device, 1);
-                socket.connect();
-
-                Log.e(TAG, "Connected");
-            } catch (Exception e2) {
-                Log.e(TAG, "Couldn't establish Bluetooth connection!");
-            }
-        }
-    }
 
     public void startClient(Context mContext, BluetoothDevice device,UUID uuid){
         Log.d(TAG, "startClient: Started.");

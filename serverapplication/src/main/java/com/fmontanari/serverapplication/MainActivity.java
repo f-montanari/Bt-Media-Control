@@ -1,62 +1,52 @@
 package com.fmontanari.serverapplication;
 
-import android.bluetooth.BluetoothDevice;
+import android.app.Instrumentation;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.widget.TextView;
 
-import com.btwiz.library.BTSocket;
-import com.btwiz.library.BTWiz;
-import com.btwiz.library.DeviceNotSupportBluetooth;
-import com.btwiz.library.IAcceptListener;
-import com.btwiz.library.SecureMode;
-import com.btwiz.library.Utils;
+public class MainActivity extends AppCompatActivity implements BluetoothConnectionService.BluetoothEventListener{
 
-public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
 
+    TextView txtLastMessage;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        txtLastMessage = findViewById(R.id.txtLastMessage);
+        Context context = getApplicationContext();
 
-        /*try {
-            if (!BTWiz.isEnabled(getApplicationContext())) {
-                startActivity(BTWiz.enableBTIntent());
-                return;
-            }
-        } catch (DeviceNotSupportBluetooth e) {
-            // TODO disable Bluetooth functionality in your app
-            return;
-        }
+        Intent i = new Intent(context,ListeningService.class);
+        context.startService(i);
 
-        IAcceptListener acceptListener = new IAcceptListener() {
+        /*
+        IntentFilter intentFilter = new IntentFilter(Constants.MESSAGE_RECEIVED);
+        BluetoothBroadcastReceiver receiver = new BluetoothBroadcastReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver,intentFilter);
+        receiver.addEventListener(this);*/
+    }
+
+    @Override
+    public void onMessageReceived(final String message) {
+
+        runOnUiThread(new Runnable() {
             @Override
-            public void onNewConnectionAccepted(BTSocket newConnection) {
-                // log
-                BluetoothDevice device = newConnection.getRemoteDevice();
-                String name = device.getName();
-                String addr = device.getAddress();
-                int major = device.getBluetoothClass().getMajorDeviceClass();
-                String majorStr = Utils.majorToString(major);
-                Log.d("Tester", "New connection: " + name + ", " + addr + ", " + majorStr);
-
-                // TODO work with new connection e.g. using
-                // async IO methods: readAsync() & writeAsync()
-                // or synchronous read() & write()
+            public void run() {
+                txtLastMessage.setText(message);
             }
-            @Override
-            public void onError(Exception e, String where) {
-                // TODO handle error
-                Log.e("Tester", "Connection error " + e + " at " + where);
-            }
-        };
+        });
 
+    }
 
-        BTWiz.listenForConnectionsAsync("MyServerName", acceptListener, SecureMode.INSECURE);
-
-        Log.d("Tester", "Async listener activated");
-*/
-        BluetoothConnectionService mBluetoothService = new BluetoothConnectionService(getApplicationContext());
-
+   @Override
+    public void onDeviceDisconnected() {
+        Log.d(TAG, "onDeviceDisconnected: Device disconnected");
     }
 }

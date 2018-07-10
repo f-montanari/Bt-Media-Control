@@ -145,14 +145,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void nextButtonClicked(View view) {
-        //BluetoothComms.getInstance().connectToDevice(getApplicationContext(),-1,device.getName(), SecureMode.INSECURE,device.getUuids()[0].getUuid());
-        //BluetoothComms.getInstance().connectToBTDevice(device);
+        coms.write(("next").getBytes(Charset.defaultCharset()));
+    }
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                coms.write(("hello").getBytes(Charset.defaultCharset()));
-            }
-        });
+    public void pauseButtonClicked(View view) {
+        coms.write(("pause").getBytes(Charset.defaultCharset()));
+    }
+
+    public void previousButtonClicked(View view) {
+        coms.write(("prev").getBytes(Charset.defaultCharset()));
     }
 }

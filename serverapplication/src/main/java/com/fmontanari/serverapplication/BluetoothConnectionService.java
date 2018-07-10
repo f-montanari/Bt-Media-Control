@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.UUID;
 
 /**
@@ -27,23 +28,38 @@ public class BluetoothConnectionService {
             UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
 
     private final BluetoothAdapter mBluetoothAdapter;
-    Context mContext;
-
     private AcceptThread mInsecureAcceptThread;
-
     private ConnectThread mConnectThread;
     private BluetoothDevice mmDevice;
     private UUID deviceUUID;
+    private ArrayList<BluetoothEventListener> listeners;
     ProgressDialog mProgressDialog;
-
+    Context mContext;
     private ConnectedThread mConnectedThread;
 
     public BluetoothConnectionService(Context context) {
         mContext = context;
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        listeners = new ArrayList<>();
         start();
     }
 
+
+    public void addEventListener(BluetoothEventListener listener)
+    {
+        listeners.add(listener);
+    }
+
+    public void removeEventListener(BluetoothEventListener listener)
+    {
+        listeners.remove(listener);
+    }
+
+    public interface BluetoothEventListener
+    {
+        void onMessageReceived(String message);
+        void onDeviceDisconnected();
+    }
 
     /**
      * This thread runs while listening for incoming connections. It behaves
@@ -255,6 +271,11 @@ public class BluetoothConnectionService {
                     bytes = mmInStream.read(buffer);
                     String incomingMessage = new String(buffer, 0, bytes);
                     Log.d(TAG, "InputStream: " + incomingMessage);
+                    for (BluetoothEventListener listener :
+                            listeners) {
+                        listener.onMessageReceived(incomingMessage);
+                    }
+
                 } catch (IOException e) {
                     Log.e(TAG, "write: Error reading Input Stream. " + e.getMessage() );
                     break;
