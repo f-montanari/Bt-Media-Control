@@ -23,6 +23,7 @@ import com.btwiz.library.SecureMode;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity
     private String[] names = new String[]{};
     private TextView mTextMessage;
     private BluetoothDevice device;
+    final BluetoothComms coms = new BluetoothComms();
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -68,7 +71,6 @@ public class MainActivity extends AppCompatActivity
         mTextMessage = (TextView) findViewById(R.id.message);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-
     }
 
     private void ConnectBluetoothClicked()
@@ -118,8 +120,7 @@ public class MainActivity extends AppCompatActivity
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (position >= 0 && position < addresses.length) {
                     // Selected item listener
-                    mTextMessage.setText(addresses[position]);
-                    device = mBluetoothAdapter.getRemoteDevice(addresses[position]);
+                    selectedDevice(mBluetoothAdapter.getRemoteDevice(addresses[position]));
                 }
                 popupWindow.dismiss();
             }
@@ -136,9 +137,22 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    public void selectedDevice(BluetoothDevice device)
+    {
+        mTextMessage.setText(device.getAddress());
+        this.device = device;
+        coms.startClient(getApplicationContext(),device, UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66"));
+    }
+
     public void nextButtonClicked(View view) {
         //BluetoothComms.getInstance().connectToDevice(getApplicationContext(),-1,device.getName(), SecureMode.INSECURE,device.getUuids()[0].getUuid());
         //BluetoothComms.getInstance().connectToBTDevice(device);
-        BluetoothComms.getInstance().startClient(getApplicationContext(),device, UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66"));
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                coms.write(("hello").getBytes(Charset.defaultCharset()));
+            }
+        });
     }
 }

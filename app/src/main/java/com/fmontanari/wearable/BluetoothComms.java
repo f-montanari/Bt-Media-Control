@@ -42,7 +42,7 @@ public class BluetoothComms {
     private UUID deviceUUID;
     ProgressDialog mProgressDialog;
 
-    private ConnectedThread mConnectedThread;
+    public ConnectedThread mConnectedThread;
 
 
 
@@ -236,7 +236,7 @@ public class BluetoothComms {
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
 
-        public ConnectedThread(BluetoothSocket socket) {
+        private ConnectedThread(BluetoothSocket socket) {
             Log.d(TAG, "ConnectedThread: Starting.");
 
             mmSocket = socket;
