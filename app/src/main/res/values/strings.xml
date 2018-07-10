@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">wearable</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="previous"><![CDATA[<<]]></string>
+    <string name="pause">||</string>
+    <string name="next"><![CDATA[>>]]></string>
+    <string name="title_connect">Connect</string>
+    <string name="bluetooth_error">Error connecting via bluetooth</string>
+</resources>
