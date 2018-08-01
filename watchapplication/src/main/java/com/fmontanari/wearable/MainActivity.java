@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -19,12 +20,7 @@ import android.widget.ListPopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.btwiz.library.SecureMode;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -68,9 +64,32 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Navigation
         mTextMessage = (TextView) findViewById(R.id.message);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+        // Load shared prefs.
+        SharedPreferences prefs = getSharedPreferences("devicePrefs",MODE_PRIVATE);
+
+        // Get device.
+        String macAddress = prefs.getString("macAddress",null);
+        if(macAddress != null)
+        {
+            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            if (mBluetoothAdapter == null) {
+                Context context = getApplicationContext();
+                String msg = context.getResources().getString(R.string.bluetooth_error);
+                Log.w(TAG, msg);
+                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            device = mBluetoothAdapter.getRemoteDevice(macAddress);
+            // And connect.
+            selectedDevice(device);
+        }
+
     }
 
     private void ConnectBluetoothClicked()
@@ -139,6 +158,12 @@ public class MainActivity extends AppCompatActivity
 
     public void selectedDevice(BluetoothDevice device)
     {
+
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences("devicePrefs",MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("macAddress",device.getAddress());
+        editor.apply();
+
         mTextMessage.setText(device.getAddress());
         this.device = device;
         coms.startClient(getApplicationContext(),device, UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66"));
