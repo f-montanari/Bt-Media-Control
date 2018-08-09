@@ -55,6 +55,28 @@ public class BluetoothConnectionService {
         listeners.remove(listener);
     }
 
+    public void reset()
+    {
+        if(mInsecureAcceptThread != null)
+        {
+            mInsecureAcceptThread.cancel();
+            mInsecureAcceptThread = null;
+        }
+        if(mConnectThread != null)
+        {
+            mConnectThread.cancel();
+            mConnectThread = null;
+        }
+        if(mConnectedThread != null)
+        {
+            mConnectedThread.cancel();
+            mConnectThread = null;
+        }
+
+        mmDevice = null;
+        start();
+    }
+
     public interface BluetoothEventListener
     {
         void onMessageReceived(String message);
@@ -175,7 +197,6 @@ public class BluetoothConnectionService {
                 Log.d(TAG, "run: ConnectThread: Could not connect to UUID: " + MY_UUID_INSECURE );
             }
 
-            //will talk about this in the 3rd video
             connected(mmSocket,mmDevice);
         }
         public void cancel() {
@@ -216,7 +237,7 @@ public class BluetoothConnectionService {
     public void startClient(BluetoothDevice device,UUID uuid){
         Log.d(TAG, "startClient: Started.");
 
-        //initprogress dialog
+        //init progress dialog
         mProgressDialog = ProgressDialog.show(mContext,"Connecting Bluetooth"
                 ,"Please Wait...",true);
 
@@ -278,6 +299,10 @@ public class BluetoothConnectionService {
 
                 } catch (IOException e) {
                     Log.e(TAG, "write: Error reading Input Stream. " + e.getMessage() );
+                    for (BluetoothEventListener listener :
+                            listeners) {
+                        listener.onDeviceDisconnected();
+                    }
                     break;
                 }
             }
@@ -291,6 +316,10 @@ public class BluetoothConnectionService {
                 mmOutStream.write(bytes);
             } catch (IOException e) {
                 Log.e(TAG, "write: Error writing to output stream. " + e.getMessage() );
+                for (BluetoothEventListener listener :
+                        listeners) {
+                    listener.onDeviceDisconnected();
+                }
             }
         }
 

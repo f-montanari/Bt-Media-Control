@@ -58,8 +58,10 @@ public class ListeningService extends Service implements BluetoothConnectionServ
     }
 
     @Override
-    public void onDeviceDisconnected() {
-        // Do nothing. Yet.
+    public void onDeviceDisconnected()
+    {
+        // Reset listening service.
+        mBluetoothService.reset();
     }
 
     @Nullable
